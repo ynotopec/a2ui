@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A2UI Client - Streaming JSONL Interface Generator">
+  <meta name="author" content="A2UI">
+  <meta name="robots" content="index, follow">
+  <title>A2UI Client - Streaming Interface</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --surface-color: #ffffff;
+      --text-color: #1e293b;
+      --border-color: #e2e8f0;
+      --error-color: #dc2626;
+      --error-bg: #fef2f2;
+      --success-color: #22c55e;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 24px 0;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: #64748b;
+      font-size: 16px;
+      margin-top: 8px;
+    }
+
+    .input-section {
+      background: var(--surface-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #f1f5f9;
+    }
+
+    .input-wrapper input:focus {
+      border-color: var(--primary-color);
+      background: #ffffff;
+    }
+
+    .input-wrapper input:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .button-wrapper button {
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: var(--primary-color);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
+    }
+
+    .button-wrapper button:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .button-wrapper button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .button-wrapper button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .button-wrapper .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .surfaces {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .surface {
+      background: var(--surface-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .surface-header {
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .surface-id {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status.loading {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status.rendering {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .surface-content {
+      padding: 24px;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+
+    .summary {
+      font-size: 18px;
+      color: #475569;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+
+    .bullets {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bullet-item {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      color: #334155;
+      border-left: 3px solid var(--primary-color);
+      transition: all 0.2s;
+    }
+
+    .bullet-item:hover {
+      transform: translateX(4px);
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    }
+
+    .bullets .empty {
+      background: #f8fafc;
+      border-left-color: #cbd5e1;
+      color: #94a3b8;
+    }
+
+    .error-message {
+      color: var(--error-color);
+      background: var(--error-bg);
+      border: 2px solid #fee2e2;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 4px solid var(--error-color);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: #64748b;
+      font-size: 18px;
+      background: var(--surface-color);
+      border-radius: 12px;
+    }
+
+    .json-preview {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .json-preview pre {
+      margin: 0;
+    }
+
+    .json-preview .key { color: #93c5fd; }
+    .json-preview .string { color: #86efac; }
+    .json-preview .number { color: #fca5a5; }
+
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding: 32px 0;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .input-group {
+        flex-direction: column;
+      }
+
+      .button-wrapper button {
+        width: 100%;
+      }
+
+      .title {
+        font-size: 24px;
+      }
+
+      .summary {
+        font-size: 16px;
+      }
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .stat {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .stream-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .toggle-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      background: var(--surface-color);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .toggle-btn:hover:not(.active) {
+      background: #f1f5f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>A2UI Client</h1>
+      <p>Streaming JSONL Interface Generator</p>
+    </div>
+
+    <div class="input-section">
+      <div class="input-group">
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="queryInput"
+            placeholder="Posez une question (ex: 'Qu'est-ce que l'IA ?')"
+          />
+        </div>
+        <div class="button-wrapper">
+          <button id="sendBtn">
+            <span class="spinner">●</span>
+            <span class="btn-text">Envoyer</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <span class="stat">Surfaces: <span class="stat-value" id="surfaceCount">0</span></span>
+        <span class="stat">Messages: <span class="stat-value" id="messageCount">0</span></span>
+        <span class="stat">État: <span class="stat-value" id="clientStatus">Prêt</span></span>
+      </div>
+    </div>
+
+    <div class="surfaces" id="surfacesContainer"></div>
+
+    <div class="footer">
+      <p>A2UI • Streaming JSONL Protocol • <a href="https://github.com/google/A2UI" target="_blank">Documentation</a></p>
+    </div>
+  </div>
+
+  <script>
+    class A2UIClient {
+      constructor() {
+        this.baseURL = '/a2ui';
+        this.surfaces = [];
+        this.surfaceCount = 0;
+        this.messageCount = 0;
+        this.eventSources = new Map();
+        this.queryInput = '';
+        this.isLoading = false;
+        this.controller = new AbortController();
+
+        this.initializeElements();
+        this.bindEvents();
+      }
+
+      initializeElements() {
+        this.queryElement = document.getElementById('queryInput');
+        this.sendButton = document.getElementById('sendBtn');
+        this.sendButton.querySelector('.btn-text').textContent = this.isLoading ? 'Recherche...' : 'Envoyer';
+        this.sendButton.style.width = '120px';
+        this.sendButton.querySelector('.spinner').style.display = this.isLoading ? 'inline-block' : 'none';
+
+        this.surfacesContainer = document.getElementById('surfacesContainer');
+        this.surfaceCountElement = document.getElementById('surfaceCount');
+        this.messageCountElement = document.getElementById('messageCount');
+        this.clientStatusElement = document.getElementById('clientStatus');
+      }
+
+      bindEvents() {
+        this.sendButton.addEventListener('click', () => this.handleSend());
+        this.queryElement.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.handleSend();
+        });
+
+        document.addEventListener('click', (e) => {
+          const { target } = e;
+          if (target.closest('.clear-surface')) {
+            const surfaceId = target.dataset.surfaceId;
+            this.clearSurface(surfaceId);
+          } else if (target.closest('.download-json')) {
+            const surfaceId = target.dataset.surfaceId;
+            this.downloadSurface(surfaceId);
+          }
+        });
+      }
+
+      async handleSend() {
+        if (this.isLoading) return;
+
+        this.queryInput = this.queryElement.value.trim();
+        if (!this.queryInput) {
+          this.queryElement.focus();
+          return;
+        }
+
+        await this.fetchA2UI();
+      }
+
+      async fetchA2UI() {
+        this.setLoading(true);
+        this.clearSurfaces();
+        this.messageCount = 0;
+
+        try {
+          const response = await fetch(`${this.baseURL}?q=${encodeURIComponent(this.queryInput)}`, {
+            signal: this.controller.signal
+          });
+
+          if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
+          }
+
+          await this.processStream(response.body as ReadableStream<Uint8Array>);
+
+        } catch (error) {
+          if (error instanceof Error && error.name !== 'AbortError') {
+            this.showClientStatus('error', 'Erreur: ' + error.message);
+          }
+        } finally {
+          this.setLoading(false);
+        }
+      }
+
+      async processStream(stream: ReadableStream<Uint8Array>) {
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (!line.trim()) continue;
+
+              try {
+                this.messageCount++;
+                const message = JSON.parse(line);
+                await this.handleMessage(message);
+              } catch (error) {
+                console.error('Error parsing JSONL line:', line, error);
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+          this.showClientStatus('idle', 'Terminé');
+        }
+      }
+
+      async handleMessage(message: any) {
+        if (message.surfaceUpdate) {
+          const surface = message.surfaceUpdate;
+          await this.handleSurfaceUpdate(surface);
+        } else if (message.dataModelUpdate) {
+          const dataModel = message.dataModelUpdate;
+          await this.handleDataModelUpdate(dataModel);
+        } else if (message.beginRendering) {
+          await this.handleBeginRendering(message.beginRendering);
+        }
+      }
+
+      async handleSurfaceUpdate(surface: any) {
+        if (this.surfaceMap.has(surface.surfaceId)) return;
+        this.surfaceMap.set(surface.surfaceId, surface);
+
+        this.surfaceMap.set(surface.surfaceId, {
+          id: surface.surfaceId,
+          components: surface.components,
+          title: '',
+          summary: '',
+          bullets: [null, null, null, null, null, null, null],
+          isRendering: false
+        });
+
+        this.renderSurface(surface.surfaceId, surface);
+      }
+
+      async handleDataModelUpdate(dataModel: any) {
+        const surface = this.surfaceMap.get(dataModel.surfaceId);
+        if (!surface) {
+          this.surfaceMap.set(dataModel.surfaceId, {
+            id: dataModel.surfaceId,
+            components: [],
+            title: '',
+            summary: '',
+            bullets: [null, null, null, null, null, null, null],
+            isRendering: false
+          });
+          return;
+        }
+
+        if (dataModel.set) {
+          dataModel.set.forEach((update: any) => {
+            if (update.path.includes('/view/title')) {
+              surface.title = update.valueString || '';
+            } else if (update.path.includes('/view/summary')) {
+              surface.summary = update.valueString || '';
+            } else if (update.path.includes('/view/bullets')) {
+              const index = parseInt(update.path.split('/view/bullets/')[1]);
+              if (!isNaN(index) && index >= 0 && index < 7) {
+                surface.bullets[index] = update.valueString || '';
+              } else if (index < 7) {
+                while (surface.bullets.length <= index) {
+                  surface.bullets.push(null);
+                }
+                surface.bullets[index] = update.valueString || '';
+              }
+            }
+          });
+        }
+
+        this.updateSurfaceDOM(surface);
+      }
+
+      async handleBeginRendering(beginRendering: any) {
+        const surface = this.surfaceMap.get(beginRendering.surfaceId);
+        if (surface) {
+          surface.isRendering = true;
+          this.updateSurfaceDOM(surface);
+        }
+      }
+
+      renderSurface(surfaceId: string, surface: any) {
+        const surfaceElement = document.createElement('div');
+        surfaceElement.className = 'surface';
+        surfaceElement.dataset.surfaceId = surfaceId;
+
+        const header = document.createElement('div');
+        header.className = 'surface-header';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'surface-id';
+        titleDiv.textContent = `Surface: ${surfaceId}`;
+
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'status loading';
+        statusDiv.textContent = 'Chargement...';
+
+        header.appendChild(titleDiv);
+        header.appendChild(statusDiv);
+
+        const content = document.createElement('div');
+        content.className = 'surface-content';
+
+        const title = document.createElement('h1');
+        title.className = 'title';
+        title.textContent = 'Titre...';
+
+        const summary = document.createElement('p');
+        summary.className = 'summary';
+        summary.textContent = 'Résumé...';
+
+        const bullets = document.createElement('div');
+        bullets.className = 'bullets';
+        for (let i = 0; i < 7; i++) {
+          const bullet = document.createElement('li');
+          bullet.className = 'bullet-item' + (!surface.bullets[i] ? ' empty' : '');
+          bullet.textContent = surface.bullets[i] || `Point ${i + 1}...`;
+          bullets.appendChild(bullet);
+        }
+
+        content.appendChild(title);
+        content.appendChild(summary);
+        content.appendChild(bullets);
+
+        surfaceElement.appendChild(header);
+        surfaceElement.appendChild(content);
+        this.surfacesContainer.appendChild(surfaceElement);
+
+        this.surfaceCountElement.textContent = String(this.surfaceMap.size);
+      }
+
+      updateSurfaceDOM(surface: any) {
+        const surfaceElement = this.surfacesContainer.querySelector(`[data-surface-id="${surface.id}"]`);
+        if (!surfaceElement) return;
+
+        const content = surfaceElement.querySelector('.surface-content');
+        const header = surfaceElement.querySelector('.surface-header');
+        const status = header.querySelector('.status');
+
+        if (surface.title) {
+          const title = content.querySelector('.title');
+          if (title) title.textContent = surface.title;
+        }
+
+        if (surface.summary) {
+          const summary = content.querySelector('.summary');
+          if (summary) summary.textContent = surface.summary;
+        }
+
+        if (surface.isRendering) {
+          status.className = 'status rendering';
+          status.textContent = 'Rendu...';
+        }
+
+        for (let i = 0; i < 7; i++) {
+          const bullet = content.querySelector(`[data-bullet-index="${i}"]`);
+          if (bullet && surface.bullets[i]) {
+            bullet.className = 'bullet-item';
+            bullet.textContent = surface.bullets[i];
+          } else if (bullet && !surface.bullets[i]) {
+            bullet.className = 'bullet-item empty';
+            bullet.textContent = `Point ${i + 1}...`;
+          }
+        }
+
+        this.messageCountElement.textContent = String(this.messageCount);
+      }
+
+      clearSurface(surfaceId: string) {
+        if (!this.surfaceMap.has(surfaceId)) return;
+
+        this.surfaceMap.delete(surfaceId);
+        const surfaceElement = this.surfacesContainer.querySelector(`[data-surface-id="${surfaceId}"]`);
+        if (surfaceElement) {
+          surfaceElement.remove();
+        }
+
+        this.surfaceCountElement.textContent = String(this.surfaceMap.size);
+      }
+
+      showClientStatus(status: string, message: string) {
+        const statusClass = { error: 'error', idle: 'loading', loading: 'loading' }[status] || 'loading';
+        const statusText = { error: 'Erreur', idle: 'Terminé' }[status] || 'En cours';
+        this.clientStatusElement.textContent = statusText;
+        this.clientStatusElement.className = `stat-value ${statusClass}`;
+      }
+
+      clearSurfaces() {
+        const surfaces = Array.from(this.surfacesContainer.children);
+        surfaces.forEach(element => {
+          const surfaceId = element.dataset.surfaceId;
+          if (surfaceId && this.surfaceMap.has(surfaceId)) {
+            this.surfaceMap.delete(surfaceId);
+            element.remove();
+          }
+        });
+
+        this.surfaceCountElement.textContent = String(this.surfaceMap.size);
+      }
+
+      setLoading(state: boolean) {
+        this.isLoading = state;
+        this.queryElement.disabled = state;
+        this.sendButton.disabled = state;
+        this.sendButton.querySelector('.btn-text').textContent = state ? 'Recherche...' : 'Envoyer';
+        this.sendButton.querySelector('.spinner').style.display = state ? 'inline-block' : 'none';
+
+        if (state) {
+          this.queryElement.placeholder = 'En attente...';
+        } else {
+          this.queryElement.placeholder = "Posez une question (ex: 'Qu'est-ce que l'IA ?')";
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      window.a2UIClient = new A2UIClient();
+    });
+  </script>
+</body>
+</html>
